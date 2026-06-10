@@ -11,7 +11,15 @@
         "title": "$t:user.home.page_title"
       }
     },
-
+  {
+      "_comment": "=== 예약 ===",
+      "path": "/reservation",
+      "layout": "reservation",
+      "auth_required": false,
+      "meta": {
+          "title": "예약하기"
+      }
+  },
     {
       "_comment": "=== 인증 ===",
       "path": "/login",

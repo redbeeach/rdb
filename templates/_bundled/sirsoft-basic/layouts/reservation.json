@@ -1,0 +1,478 @@
+{
+    "version": "1.0.0",
+    "layout_name": "reservation",
+    "permissions": [],
+    "extends": "_user_base",
+    "meta": {
+        "seo": {
+            "enabled": true,
+            "priority": 0.8,
+            "og": { "type": "website" }
+        }
+    },
+    "initLocal": {
+        "step": 1,
+        "selectedTreatment": null,
+        "selectedTreatmentName": "",
+        "selectedTime": "",
+        "selectedDate": "",
+        "inputName": "",
+        "inputPhone": "",
+        "inputMemo": ""
+    },
+    "data_sources": [
+        {
+            "id": "treatments",
+            "type": "api",
+            "endpoint": "/api/reservations/treatments",
+            "method": "GET",
+            "auto_fetch": true,
+            "loading_strategy": "progressive",
+            "fallback": { "data": [] }
+        },
+        {
+            "id": "time_slots",
+            "type": "api",
+            "endpoint": "/api/reservations/time-slots",
+            "method": "GET",
+            "auto_fetch": true,
+            "loading_strategy": "progressive",
+            "fallback": { "data": [] }
+        }
+    ],
+    "slots": {
+        "content": [
+            {
+                "type": "basic",
+                "name": "Div",
+                "props": { "className": "max-w-2xl mx-auto py-16 px-4" },
+                "children": [
+                    {
+                        "comment": "=== 페이지 타이틀 ===",
+                        "type": "basic",
+                        "name": "Div",
+                        "props": { "className": "text-center mb-12" },
+                        "children": [
+                            {
+                                "type": "basic",
+                                "name": "P",
+                                "props": { "className": "text-[#C9967A] text-sm tracking-widest uppercase mb-3" },
+                                "text": "Reservation"
+                            },
+                            {
+                                "type": "basic",
+                                "name": "H1",
+                                "props": { "className": "text-[#2C2420] text-3xl font-light" },
+                                "text": "예약하기"
+                            }
+                        ]
+                    },
+                    {
+                        "comment": "=== 스텝 인디케이터 ===",
+                        "type": "basic",
+                        "name": "Div",
+                        "props": { "className": "flex items-center justify-center mb-12" },
+                        "children": [
+                            {
+                                "type": "basic",
+                                "name": "Div",
+                                "props": { "className": "flex items-center" },
+                                "children": [
+                                    {
+                                        "type": "basic",
+                                        "name": "Div",
+                                        "props": { "className": "{{(_local.step ?? 1) >= 1 ? 'w-8 h-8 rounded-full bg-[#C9967A] text-white text-sm flex items-center justify-center' : 'w-8 h-8 rounded-full bg-[#F0EAE4] text-[#888888] text-sm flex items-center justify-center'}}" },
+                                        "text": "1"
+                                    },
+                                    { "type": "basic", "name": "Div", "props": { "className": "w-16 h-px bg-[#F0EAE4]" } },
+                                    {
+                                        "type": "basic",
+                                        "name": "Div",
+                                        "props": { "className": "{{(_local.step ?? 1) >= 2 ? 'w-8 h-8 rounded-full bg-[#C9967A] text-white text-sm flex items-center justify-center' : 'w-8 h-8 rounded-full bg-[#F0EAE4] text-[#888888] text-sm flex items-center justify-center'}}" },
+                                        "text": "2"
+                                    },
+                                    { "type": "basic", "name": "Div", "props": { "className": "w-16 h-px bg-[#F0EAE4]" } },
+                                    {
+                                        "type": "basic",
+                                        "name": "Div",
+                                        "props": { "className": "{{(_local.step ?? 1) >= 3 ? 'w-8 h-8 rounded-full bg-[#C9967A] text-white text-sm flex items-center justify-center' : 'w-8 h-8 rounded-full bg-[#F0EAE4] text-[#888888] text-sm flex items-center justify-center'}}" },
+                                        "text": "3"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "comment": "=== Step 1: 시술 선택 ===",
+                        "type": "basic",
+                        "name": "Div",
+                        "if": "{{(_local.step ?? 1) === 1}}",
+                        "children": [
+                            {
+                                "type": "basic",
+                                "name": "H2",
+                                "props": { "className": "text-[#2C2420] text-xl font-light mb-8 text-center" },
+                                "text": "시술을 선택해주세요"
+                            },
+                            {
+                                "type": "basic",
+                                "name": "Div",
+                                "props": { "className": "flex flex-col gap-4 mb-10" },
+                                "iteration": {
+                                    "source": "{{treatments?.data ?? []}}",
+                                    "item_var": "item"
+                                },
+                                "children": [
+                                    {
+                                        "type": "basic",
+                                        "name": "Button",
+                                        "props": {
+                                            "className": "{{_local.selectedTreatment === item.id ? 'w-full p-5 border-2 border-[#C9967A] bg-[#FBF7F5] text-left cursor-pointer' : 'w-full p-5 border border-[#F0EAE4] bg-white hover:border-[#C9967A] text-left cursor-pointer transition-colors'}}"
+                                        },
+                                        "actions": [
+                                            {
+                                                "event": "onClick",
+                                                "handler": "setState",
+                                                "params": {
+                                                    "target": "local",
+                                                    "selectedTreatment": "{{item.id}}",
+                                                    "selectedTreatmentName": "{{item.name}}"
+                                                }
+                                            }
+                                        ],
+                                        "children": [
+                                            { "type": "basic", "name": "P", "props": { "className": "text-[#2C2420] font-medium mb-1" }, "text": "{{item.name}}" },
+                                            { "type": "basic", "name": "P", "props": { "className": "text-[#888888] text-sm" }, "text": "{{item.description}}" }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "basic",
+                                "name": "Button",
+                                "if": "{{!!_local.selectedTreatment}}",
+                                "props": { "className": "w-full bg-[#C9967A] text-white py-4 text-sm tracking-widest hover:bg-[#b8856a] transition-colors cursor-pointer" },
+                                "text": "다음 단계",
+                                "actions": [{ "event": "onClick", "handler": "setState", "params": { "target": "local", "step": 2 } }]
+                            }
+                        ]
+                    },
+                    {
+                        "comment": "=== Step 2: 날짜/시간 선택 ===",
+                        "type": "basic",
+                        "name": "Div",
+                        "if": "{{(_local.step ?? 1) === 2}}",
+                        "children": [
+                            {
+                                "type": "basic",
+                                "name": "H2",
+                                "props": { "className": "text-[#2C2420] text-xl font-light mb-8 text-center" },
+                                "text": "날짜와 시간을 선택해주세요"
+                            },
+                            {
+                                "type": "basic",
+                                "name": "Div",
+                                "props": { "className": "flex flex-col gap-6 mb-10" },
+                                "children": [
+                                    {
+                                        "type": "basic",
+                                        "name": "Div",
+                                        "children": [
+                                            { "type": "basic", "name": "P", "props": { "className": "text-[#2C2420] text-sm mb-2" }, "text": "날짜" },
+                                            {
+                                                "type": "basic",
+                                                "name": "Input",
+                                                "props": {
+                                                    "type": "date",
+                                                    "name": "selectedDate",
+                                                    "className": "w-full border border-[#F0EAE4] p-3 text-[#2C2420] focus:outline-none focus:border-[#C9967A]"
+                                                },
+                                                "actions": [
+                                                    {
+                                                        "event": "onChange",
+                                                        "handler": "setState",
+                                                        "params": {
+                                                            "target": "local",
+                                                            "selectedDate": "{{$event.target.value}}"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "basic",
+                                        "name": "Div",
+                                        "props": { "className": "grid grid-cols-4 gap-2" },
+                                        "iteration": {
+                                            "source": "{{time_slots?.data ?? []}}",
+                                            "item_var": "item"
+                                        },
+                                        "children": [
+                                            {
+                                                "type": "basic",
+                                                "name": "Button",
+                                                "props": {
+                                                    "className": "{{_local.selectedTime === item.time ? 'py-2 text-sm border-2 border-[#C9967A] bg-[#FBF7F5] text-[#C9967A] cursor-pointer' : 'py-2 text-sm border border-[#F0EAE4] text-[#2C2420] hover:border-[#C9967A] cursor-pointer transition-colors'}}"
+                                                },
+                                                "text": "{{item.time}}",
+                                                "actions": [
+                                                    {
+                                                        "event": "onClick",
+                                                        "handler": "setState",
+                                                        "params": {
+                                                            "target": "local",
+                                                            "selectedTime": "{{item.time}}",
+                                                            "selectedTimeSlotId": "{{item.id}}"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "basic",
+                                "name": "Div",
+                                "props": { "className": "flex gap-3" },
+                                "children": [
+                                    {
+                                        "type": "basic",
+                                        "name": "Button",
+                                        "props": { "className": "flex-1 border border-[#F0EAE4] text-[#888888] py-4 text-sm tracking-widest hover:border-[#C9967A] transition-colors cursor-pointer" },
+                                        "text": "이전",
+                                        "actions": [{ "event": "onClick", "handler": "setState", "params": { "target": "local", "step": 1 } }]
+                                    },
+                                    {
+                                        "type": "basic",
+                                        "name": "Button",
+                                        "if": "{{!!_local.selectedDate && !!_local.selectedTime}}",
+                                        "props": { "className": "flex-1 bg-[#C9967A] text-white py-4 text-sm tracking-widest hover:bg-[#b8856a] transition-colors cursor-pointer" },
+                                        "text": "다음 단계",
+                                        "actions": [{ "event": "onClick", "handler": "setState", "params": { "target": "local", "step": 3 } }]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "comment": "=== Step 3: 개인정보 입력 ===",
+                        "type": "basic",
+                        "name": "Div",
+                        "if": "{{(_local.step ?? 1) === 3}}",
+                        "children": [
+                            {
+                                "type": "basic",
+                                "name": "H2",
+                                "props": { "className": "text-[#2C2420] text-xl font-light mb-8 text-center" },
+                                "text": "예약자 정보를 입력해주세요"
+                            },
+                            {
+                                "type": "basic",
+                                "name": "Div",
+                                "props": { "className": "flex flex-col gap-5 mb-10" },
+                                "children": [
+                                    {
+                                        "type": "basic",
+                                        "name": "Div",
+                                        "children": [
+                                            { "type": "basic", "name": "P", "props": { "className": "text-[#2C2420] text-sm mb-2" }, "text": "이름" },
+                                            {
+                                                "type": "basic",
+                                                "name": "Input",
+                                                "props": {
+                                                    "type": "text",
+                                                    "name": "inputName",
+                                                    "placeholder": "이름을 입력해주세요",
+                                                    "className": "w-full border border-[#F0EAE4] p-3 text-[#2C2420] focus:outline-none focus:border-[#C9967A] placeholder:text-[#CCCCCC]"
+                                                },
+                                                "actions": [
+                                                    {
+                                                        "event": "onChange",
+                                                        "handler": "setState",
+                                                        "params": { "target": "local", "inputName": "{{$event.target.value}}" }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "basic",
+                                        "name": "Div",
+                                        "children": [
+                                            { "type": "basic", "name": "P", "props": { "className": "text-[#2C2420] text-sm mb-2" }, "text": "연락처" },
+                                            {
+                                                "type": "basic",
+                                                "name": "Input",
+                                                "props": {
+                                                    "type": "tel",
+                                                    "name": "inputPhone",
+                                                    "placeholder": "010-0000-0000",
+                                                    "className": "w-full border border-[#F0EAE4] p-3 text-[#2C2420] focus:outline-none focus:border-[#C9967A] placeholder:text-[#CCCCCC]"
+                                                },
+                                                "actions": [
+                                                    {
+                                                        "event": "onChange",
+                                                        "handler": "setState",
+                                                        "params": { "target": "local", "inputPhone": "{{$event.target.value}}" }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "basic",
+                                        "name": "Div",
+                                        "children": [
+                                            { "type": "basic", "name": "P", "props": { "className": "text-[#2C2420] text-sm mb-2" }, "text": "메모 (선택)" },
+                                            {
+                                                "type": "basic",
+                                                "name": "Textarea",
+                                                "props": {
+                                                    "name": "inputMemo",
+                                                    "placeholder": "궁금한 점이나 요청사항을 입력해주세요",
+                                                    "rows": 4,
+                                                    "className": "w-full border border-[#F0EAE4] p-3 text-[#2C2420] focus:outline-none focus:border-[#C9967A] placeholder:text-[#CCCCCC] resize-none"
+                                                },
+                                                "actions": [
+                                                    {
+                                                        "event": "onChange",
+                                                        "handler": "setState",
+                                                        "params": { "target": "local", "inputMemo": "{{$event.target.value}}" }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "basic",
+                                        "name": "Div",
+                                        "props": { "className": "bg-[#F8F4F0] p-5" },
+                                        "children": [
+                                            { "type": "basic", "name": "P", "props": { "className": "text-[#C9967A] text-xs tracking-widest uppercase mb-3" }, "text": "예약 정보" },
+                                            { "type": "basic", "name": "P", "props": { "className": "text-[#2C2420] text-sm mb-1" }, "text": "{{_local.selectedTreatmentName}}" },
+                                            { "type": "basic", "name": "P", "props": { "className": "text-[#888888] text-sm" }, "text": "{{_local.selectedDate}} {{_local.selectedTime}}" }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "basic",
+                                "name": "Div",
+                                "props": { "className": "flex gap-3" },
+                                "children": [
+                                    {
+                                        "type": "basic",
+                                        "name": "Button",
+                                        "props": { "className": "flex-1 border border-[#F0EAE4] text-[#888888] py-4 text-sm tracking-widest hover:border-[#C9967A] transition-colors cursor-pointer" },
+                                        "text": "이전",
+                                        "actions": [{ "event": "onClick", "handler": "setState", "params": { "target": "local", "step": 2 } }]
+                                    },
+                                    {
+                                        "type": "basic",
+                                        "name": "Button",
+                                        "if": "{{!!_local.inputName && !!_local.inputPhone}}",
+                                        "props": { "className": "flex-1 bg-[#C9967A] text-white py-4 text-sm tracking-widest hover:bg-[#b8856a] transition-colors cursor-pointer" },
+                                        "text": "예약 완료",
+                                        "actions": [
+                                            {
+                                                "type": "click",
+                                                "handler": "apiCall",
+                                                "target": "/api/reservations",
+                                                "params": {
+                                                    "method": "POST",
+                                                    "body": {
+                                                        "treatment_id": "{{_local.selectedTreatment}}",
+                                                        "time_slot_id": "{{_local.selectedTimeSlotId}}",
+                                                        "date": "{{_local.selectedDate}}",
+                                                        "name": "{{_local.inputName}}",
+                                                        "phone": "{{_local.inputPhone}}",
+                                                        "memo": "{{_local.inputMemo ?? ''}}"
+                                                    }
+                                                },
+                                                "onSuccess": [
+                                                    {
+                                                        "handler": "setState",
+                                                        "params": { "target": "local", "step": 4 }
+                                                    }
+                                                ],
+                                                "onError": [
+                                                    {
+                                                        "handler": "toast",
+                                                        "params": { "type": "error", "message": "{{error.message}}" }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "comment": "=== Step 4: 예약 완료 ===",
+                        "type": "basic",
+                        "name": "Div",
+                        "if": "{{(_local.step ?? 1) === 4}}",
+                        "children": [
+                            {
+                                "type": "basic",
+                                "name": "Div",
+                                "props": { "className": "text-center py-12" },
+                                "children": [
+                                    { "type": "basic", "name": "P", "props": { "className": "text-[#C9967A] text-4xl mb-6" }, "text": "✦" },
+                                    { "type": "basic", "name": "H2", "props": { "className": "text-[#2C2420] text-2xl font-light mb-4" }, "text": "예약이 완료되었습니다" },
+                                    { "type": "basic", "name": "P", "props": { "className": "text-[#888888] text-sm mb-10" }, "text": "예약 확인 문자가 발송될 예정입니다" },
+                                    {
+                                        "type": "basic",
+                                        "name": "Div",
+                                        "props": { "className": "bg-[#F8F4F0] p-6 mb-10 text-left" },
+                                        "children": [
+                                            { "type": "basic", "name": "P", "props": { "className": "text-[#C9967A] text-xs tracking-widest uppercase mb-4" }, "text": "예약 상세" },
+                                            {
+                                                "type": "basic",
+                                                "name": "Div",
+                                                "props": { "className": "flex flex-col gap-2" },
+                                                "children": [
+                                                    {
+                                                        "type": "basic", "name": "Div", "props": { "className": "flex justify-between" },
+                                                        "children": [
+                                                            { "type": "basic", "name": "P", "props": { "className": "text-[#888888] text-sm" }, "text": "시술" },
+                                                            { "type": "basic", "name": "P", "props": { "className": "text-[#2C2420] text-sm" }, "text": "{{_local.selectedTreatmentName}}" }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "type": "basic", "name": "Div", "props": { "className": "flex justify-between" },
+                                                        "children": [
+                                                            { "type": "basic", "name": "P", "props": { "className": "text-[#888888] text-sm" }, "text": "일시" },
+                                                            { "type": "basic", "name": "P", "props": { "className": "text-[#2C2420] text-sm" }, "text": "{{_local.selectedDate}} {{_local.selectedTime}}" }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "type": "basic", "name": "Div", "props": { "className": "flex justify-between" },
+                                                        "children": [
+                                                            { "type": "basic", "name": "P", "props": { "className": "text-[#888888] text-sm" }, "text": "예약자" },
+                                                            { "type": "basic", "name": "P", "props": { "className": "text-[#2C2420] text-sm" }, "text": "{{_local.inputName}}" }
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "basic",
+                                        "name": "Button",
+                                        "props": { "className": "bg-[#C9967A] text-white px-10 py-4 text-sm tracking-widest hover:bg-[#b8856a] transition-colors cursor-pointer" },
+                                        "text": "홈으로 돌아가기",
+                                        "actions": [{ "event": "onClick", "handler": "navigate", "params": { "path": "/" } }]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

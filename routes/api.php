@@ -721,3 +721,62 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'check.user_status', 'admin'
         Route::put('{templateName}/layouts/{name}', [AdminLayoutController::class, 'update'])->middleware('permission:admin,core.templates.layouts.edit')->name('api.admin.templates.layouts.update')->where('name', '[a-zA-Z0-9_/\.\-]+');
     });
 });
+// ===== 예약 시스템 =====
+
+// 공개 API (프론트용)
+Route::prefix('reservations')->group(function () {
+    // 시술 목록 조회
+    Route::get('treatments', [\App\Http\Controllers\Api\TreatmentController::class, 'index'])
+        ->name('api.reservations.treatments.index');
+
+    // 시간 목록 조회
+    Route::get('time-slots', [\App\Http\Controllers\Api\TimeSlotController::class, 'index'])
+        ->name('api.reservations.time-slots.index');
+
+    // 예약 생성
+    Route::post('/', [\App\Http\Controllers\Api\ReservationController::class, 'store'])
+        ->name('api.reservations.store');
+});
+// 공개 API (프론트용)
+Route::prefix('reservations')->group(function () {
+    Route::get('treatments', [\App\Http\Controllers\Api\TreatmentController::class, 'index'])
+        ->name('api.reservations.treatments.index');
+    Route::get('time-slots', [\App\Http\Controllers\Api\TimeSlotController::class, 'index'])
+        ->name('api.reservations.time-slots.index');
+    Route::post('/', [\App\Http\Controllers\Api\ReservationController::class, 'store'])
+        ->name('api.reservations.store');
+});
+// 관리자 API
+Route::prefix('admin/reservations')
+->middleware(['auth:sanctum', 'check.user_status', 'admin'])
+->group(function () {
+    // 시술 관리
+    Route::get('treatments', [\App\Http\Controllers\Api\TreatmentController::class, 'adminIndex'])
+        ->name('api.admin.reservations.treatments.index');
+    Route::post('treatments', [\App\Http\Controllers\Api\TreatmentController::class, 'store'])
+        ->name('api.admin.reservations.treatments.store');
+    Route::put('treatments/{treatment}', [\App\Http\Controllers\Api\TreatmentController::class, 'update'])
+        ->name('api.admin.reservations.treatments.update');
+    Route::delete('treatments/{treatment}', [\App\Http\Controllers\Api\TreatmentController::class, 'destroy'])
+        ->name('api.admin.reservations.treatments.destroy');
+
+    // 시간 관리
+    Route::get('time-slots', [\App\Http\Controllers\Api\TimeSlotController::class, 'adminIndex'])
+        ->name('api.admin.reservations.time-slots.index');
+    Route::post('time-slots', [\App\Http\Controllers\Api\TimeSlotController::class, 'store'])
+        ->name('api.admin.reservations.time-slots.store');
+    Route::put('time-slots/{timeSlot}', [\App\Http\Controllers\Api\TimeSlotController::class, 'update'])
+        ->name('api.admin.reservations.time-slots.update');
+    Route::delete('time-slots/{timeSlot}', [\App\Http\Controllers\Api\TimeSlotController::class, 'destroy'])
+        ->name('api.admin.reservations.time-slots.destroy');
+
+    // 예약 관리
+    Route::get('/', [\App\Http\Controllers\Api\ReservationController::class, 'adminIndex'])
+        ->name('api.admin.reservations.index');
+    Route::get('{reservation}', [\App\Http\Controllers\Api\ReservationController::class, 'adminShow'])
+        ->name('api.admin.reservations.show');
+    Route::patch('{reservation}/status', [\App\Http\Controllers\Api\ReservationController::class, 'updateStatus'])
+        ->name('api.admin.reservations.update-status');
+    Route::delete('{reservation}', [\App\Http\Controllers\Api\ReservationController::class, 'destroy'])
+        ->name('api.admin.reservations.destroy');
+});
