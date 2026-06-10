@@ -3,7 +3,7 @@
  * Tailwind CSS v4 사용
  */
 @import 'tailwindcss';
-
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 /**
  * Dark mode variant 설정
  * class 기반 dark 모드 활성화 (.dark 클래스 사용)
@@ -21,6 +21,8 @@
  * Nexibase 스타일 기반
  */
 @theme {
+  --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  
   /* Primary colors - Blue */
   --color-primary-50: #eff6ff;
   --color-primary-100: #dbeafe;
@@ -73,7 +75,7 @@
   /* 기본 body 스타일 */
   body {
     @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-white;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 
   /* 링크 기본 스타일 */
