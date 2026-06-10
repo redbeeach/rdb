@@ -131,7 +131,7 @@
                                         },
                                         "actions": [
                                             {
-                                                "event": "onClick",
+                                                "type": "click",
                                                 "handler": "setState",
                                                 "params": {
                                                     "target": "local",
@@ -153,7 +153,7 @@
                                 "if": "{{!!_local.selectedTreatment}}",
                                 "props": { "className": "w-full bg-[#C9967A] text-white py-4 text-sm tracking-widest hover:bg-[#b8856a] transition-colors cursor-pointer" },
                                 "text": "다음 단계",
-                                "actions": [{ "event": "onClick", "handler": "setState", "params": { "target": "local", "step": 2 } }]
+                                "actions": [{ "type": "click", "handler": "setState", "params": { "target": "local", "step": 2 } }]
                             }
                         ]
                     },
@@ -189,7 +189,7 @@
                                                 },
                                                 "actions": [
                                                     {
-                                                        "event": "onChange",
+                                                        "type": "change",
                                                         "handler": "setState",
                                                         "params": {
                                                             "target": "local",
@@ -203,28 +203,41 @@
                                     {
                                         "type": "basic",
                                         "name": "Div",
-                                        "props": { "className": "grid grid-cols-4 gap-2" },
-                                        "iteration": {
-                                            "source": "{{time_slots?.data ?? []}}",
-                                            "item_var": "item"
-                                        },
                                         "children": [
+                                            { "type": "basic", "name": "P", "props": { "className": "text-[#2C2420] text-sm mb-3" }, "text": "시간" },
                                             {
                                                 "type": "basic",
-                                                "name": "Button",
-                                                "props": {
-                                                    "className": "{{_local.selectedTime === item.time ? 'py-2 text-sm border-2 border-[#C9967A] bg-[#FBF7F5] text-[#C9967A] cursor-pointer' : 'py-2 text-sm border border-[#F0EAE4] text-[#2C2420] hover:border-[#C9967A] cursor-pointer transition-colors'}}"
-                                                },
-                                                "text": "{{item.time}}",
-                                                "actions": [
+                                                "name": "Div",
+                                                "props": { "className": "grid grid-cols-4 gap-2" },
+                                                "children": [
                                                     {
-                                                        "event": "onClick",
-                                                        "handler": "setState",
-                                                        "params": {
-                                                            "target": "local",
-                                                            "selectedTime": "{{item.time}}",
-                                                            "selectedTimeSlotId": "{{item.id}}"
-                                                        }
+                                                        "type": "basic",
+                                                        "name": "Div",
+                                                        "iteration": {
+                                                            "source": "{{time_slots?.data ?? []}}",
+                                                            "item_var": "item"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "type": "basic",
+                                                                "name": "Button",
+                                                                "props": {
+                                                                    "className": "{{_local.selectedTime === item.time ? 'w-full py-2 text-sm border-2 border-[#C9967A] bg-[#FBF7F5] text-[#C9967A] cursor-pointer' : 'w-full py-2 text-sm border border-[#F0EAE4] text-[#2C2420] hover:border-[#C9967A] cursor-pointer transition-colors'}}"
+                                                                },
+                                                                "text": "{{item.time}}",
+                                                                "actions": [
+                                                                    {
+                                                                        "type": "click",
+                                                                        "handler": "setState",
+                                                                        "params": {
+                                                                            "target": "local",
+                                                                            "selectedTime": "{{item.time}}",
+                                                                            "selectedTimeSlotId": "{{item.id}}"
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ]
                                                     }
                                                 ]
                                             }
@@ -242,7 +255,7 @@
                                         "name": "Button",
                                         "props": { "className": "flex-1 border border-[#F0EAE4] text-[#888888] py-4 text-sm tracking-widest hover:border-[#C9967A] transition-colors cursor-pointer" },
                                         "text": "이전",
-                                        "actions": [{ "event": "onClick", "handler": "setState", "params": { "target": "local", "step": 1 } }]
+                                        "actions": [{ "type": "click", "handler": "setState", "params": { "target": "local", "step": 1 } }]
                                     },
                                     {
                                         "type": "basic",
@@ -250,7 +263,7 @@
                                         "if": "{{!!_local.selectedDate && !!_local.selectedTime}}",
                                         "props": { "className": "flex-1 bg-[#C9967A] text-white py-4 text-sm tracking-widest hover:bg-[#b8856a] transition-colors cursor-pointer" },
                                         "text": "다음 단계",
-                                        "actions": [{ "event": "onClick", "handler": "setState", "params": { "target": "local", "step": 3 } }]
+                                        "actions": [{ "type": "click", "handler": "setState", "params": { "target": "local", "step": 3 } }]
                                     }
                                 ]
                             }
@@ -289,7 +302,7 @@
                                                 },
                                                 "actions": [
                                                     {
-                                                        "event": "onChange",
+                                                        "type": "change",
                                                         "handler": "setState",
                                                         "params": { "target": "local", "inputName": "{{$event.target.value}}" }
                                                     }
@@ -313,7 +326,7 @@
                                                 },
                                                 "actions": [
                                                     {
-                                                        "event": "onChange",
+                                                        "type": "change",
                                                         "handler": "setState",
                                                         "params": { "target": "local", "inputPhone": "{{$event.target.value}}" }
                                                     }
@@ -337,7 +350,7 @@
                                                 },
                                                 "actions": [
                                                     {
-                                                        "event": "onChange",
+                                                        "type": "change",
                                                         "handler": "setState",
                                                         "params": { "target": "local", "inputMemo": "{{$event.target.value}}" }
                                                     }
@@ -367,7 +380,7 @@
                                         "name": "Button",
                                         "props": { "className": "flex-1 border border-[#F0EAE4] text-[#888888] py-4 text-sm tracking-widest hover:border-[#C9967A] transition-colors cursor-pointer" },
                                         "text": "이전",
-                                        "actions": [{ "event": "onClick", "handler": "setState", "params": { "target": "local", "step": 2 } }]
+                                        "actions": [{ "type": "click", "handler": "setState", "params": { "target": "local", "step": 2 } }]
                                     },
                                     {
                                         "type": "basic",
@@ -465,7 +478,7 @@
                                         "name": "Button",
                                         "props": { "className": "bg-[#C9967A] text-white px-10 py-4 text-sm tracking-widest hover:bg-[#b8856a] transition-colors cursor-pointer" },
                                         "text": "홈으로 돌아가기",
-                                        "actions": [{ "event": "onClick", "handler": "navigate", "params": { "path": "/" } }]
+                                        "actions": [{ "type": "click", "handler": "navigate", "params": { "path": "/" } }]
                                     }
                                 ]
                             }
