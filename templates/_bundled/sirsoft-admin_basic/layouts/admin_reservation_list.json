@@ -1,0 +1,252 @@
+{
+    "version": "1.0.0",
+    "layout_name": "admin_reservation_list",
+    "permissions": [],
+    "extends": "_admin_base",
+    "meta": {
+        "title": "예약 관리",
+        "description": "예약 목록 조회 및 상태 관리"
+    },
+    "data_sources": [
+        {
+            "id": "reservations",
+            "type": "api",
+            "endpoint": "/api/admin/reservations",
+            "method": "GET",
+            "auto_fetch": true,
+            "auth_required": true,
+            "params": {
+                "page": "{{query.page}}"
+            },
+            "fallback": {
+                "data": {
+                    "data": [],
+                    "current_page": 1,
+                    "last_page": 1,
+                    "total": 0
+                }
+            }
+        }
+    ],
+    "slots": {
+        "content": [
+            {
+                "id": "reservation_list_content",
+                "type": "basic",
+                "name": "Div",
+                "props": {
+                    "className": "p-6 bg-gray-50 dark:bg-gray-900"
+                },
+                "children": [
+                    {
+                        "id": "page_header",
+                        "type": "composite",
+                        "name": "PageHeader",
+                        "props": {
+                            "title": "예약 관리",
+                            "description": "고객 예약 목록을 확인하고 상태를 관리하세요"
+                        },
+                        "children": [
+                            {
+                                "id": "refresh_button",
+                                "type": "basic",
+                                "name": "Button",
+                                "props": {
+                                    "className": "p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                },
+                                "actions": [
+                                    {
+                                        "type": "click",
+                                        "handler": "refetchDataSource",
+                                        "params": { "dataSourceId": "reservations" }
+                                    }
+                                ],
+                                "children": [
+                                    { "type": "basic", "name": "Icon", "props": { "name": "refresh", "className": "w-5 h-5" } }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "id": "reservations_data_grid",
+                        "type": "composite",
+                        "name": "DataGrid",
+                        "blur_until_loaded": true,
+                        "props": {
+                            "columns": [
+                                {
+                                    "field": "name",
+                                    "header": "예약자",
+                                    "required": true,
+                                    "cellChildren": [
+                                        {
+                                            "type": "basic",
+                                            "name": "Div",
+                                            "children": [
+                                                { "type": "basic", "name": "Span", "props": { "className": "font-medium text-gray-900 dark:text-white" }, "text": "{{row.name}}" },
+                                                { "type": "basic", "name": "Div", "props": { "className": "text-xs text-gray-500 dark:text-gray-400" }, "text": "{{row.phone}}" }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "field": "treatment",
+                                    "header": "시술",
+                                    "cellChildren": [
+                                        { "type": "basic", "name": "Span", "text": "{{row.treatment?.name}}" }
+                                    ]
+                                },
+                                {
+                                    "field": "datetime",
+                                    "header": "예약 일시",
+                                    "cellChildren": [
+                                        { "type": "basic", "name": "Span", "text": "{{row.date}} {{row.time_slot?.time}}" }
+                                    ]
+                                },
+                                {
+                                    "field": "status",
+                                    "header": "상태",
+                                    "cellChildren": [
+                                        {
+                                            "type": "basic",
+                                            "name": "Span",
+                                            "props": {
+                                                "className": "{{row.status === 'confirmed' ? 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : row.status === 'cancelled' ? 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' : 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'}}"
+                                            },
+                                            "text": "{{row.status === 'confirmed' ? '확정' : row.status === 'cancelled' ? '취소' : '대기중'}}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "field": "memo",
+                                    "header": "메모"
+                                },
+                                {
+                                    "field": "created_at",
+                                    "header": "신청일"
+                                }
+                            ],
+                            "data": "{{reservations?.data?.data}}",
+                            "pagination": true,
+                            "alwaysShowPagination": true,
+                            "serverSidePagination": true,
+                            "serverCurrentPage": "{{reservations?.data?.current_page ?? 1}}",
+                            "serverTotalPages": "{{reservations?.data?.last_page ?? 1}}",
+                            "idField": "id",
+                            "rowActions": [
+                                { "id": "confirm", "label": "확정", "iconName": "check" },
+                                { "id": "cancel", "label": "취소", "iconName": "x", "variant": "danger" },
+                                { "id": "delete", "label": "삭제", "iconName": "trash", "variant": "danger" }
+                            ],
+                            "actionsColumnHeader": "관리"
+                        },
+                        "actions": [
+                            {
+                                "event": "onPageChange",
+                                "type": "change",
+                                "handler": "navigate",
+                                "params": {
+                                    "path": "/admin/reservations",
+                                    "mergeQuery": true,
+                                    "query": { "page": "{{$args[0]}}" }
+                                }
+                            },
+                            {
+                                "event": "onRowAction",
+                                "type": "action",
+                                "handler": "switch",
+                                "cases": {
+                                    "confirm": {
+                                        "handler": "apiCall",
+                                        "auth_required": true,
+                                        "target": "/api/admin/reservations/{{$args[1].id}}/status",
+                                        "params": {
+                                            "method": "PATCH",
+                                            "body": { "status": "confirmed" }
+                                        },
+                                        "onSuccess": [
+                                            { "handler": "refetchDataSource", "params": { "dataSourceId": "reservations" } },
+                                            { "handler": "toast", "params": { "type": "success", "message": "예약이 확정되었습니다" } }
+                                        ]
+                                    },
+                                    "cancel": {
+                                        "handler": "apiCall",
+                                        "auth_required": true,
+                                        "target": "/api/admin/reservations/{{$args[1].id}}/status",
+                                        "params": {
+                                            "method": "PATCH",
+                                            "body": { "status": "cancelled" }
+                                        },
+                                        "onSuccess": [
+                                            { "handler": "refetchDataSource", "params": { "dataSourceId": "reservations" } },
+                                            { "handler": "toast", "params": { "type": "success", "message": "예약이 취소되었습니다" } }
+                                        ]
+                                    },
+                                    "delete": {
+                                        "handler": "setState",
+                                        "params": { "target": "global", "modal_data": "{{$args[1]}}" },
+                                        "onSuccess": [
+                                            { "handler": "openModal", "target": "delete_confirm_modal" }
+                                        ]
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "modals": [
+        {
+            "id": "delete_confirm_modal",
+            "type": "composite",
+            "name": "Modal",
+            "props": { "title": "예약 삭제", "size": "small" },
+            "children": [
+                {
+                    "type": "basic",
+                    "name": "Div",
+                    "props": { "className": "py-2" },
+                    "children": [
+                        { "type": "basic", "name": "P", "props": { "className": "text-gray-700 dark:text-gray-300" }, "text": "이 예약을 삭제하시겠습니까?" }
+                    ]
+                },
+                {
+                    "type": "basic",
+                    "name": "Div",
+                    "props": { "className": "flex justify-end gap-3 mt-6" },
+                    "children": [
+                        {
+                            "type": "basic",
+                            "name": "Button",
+                            "props": { "className": "px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700" },
+                            "actions": [{ "type": "click", "handler": "closeModal" }],
+                            "children": [{ "type": "basic", "name": "Span", "text": "취소" }]
+                        },
+                        {
+                            "type": "basic",
+                            "name": "Button",
+                            "props": { "className": "px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700" },
+                            "actions": [
+                                {
+                                    "type": "click",
+                                    "handler": "apiCall",
+                                    "auth_required": true,
+                                    "target": "/api/admin/reservations/{{_global.modal_data.id}}",
+                                    "params": { "method": "DELETE" },
+                                    "onSuccess": [
+                                        { "handler": "refetchDataSource", "params": { "dataSourceId": "reservations" } },
+                                        { "handler": "toast", "params": { "type": "success", "message": "삭제되었습니다" } },
+                                        { "handler": "closeModal" }
+                                    ]
+                                }
+                            ],
+                            "children": [{ "type": "basic", "name": "Span", "text": "삭제" }]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
