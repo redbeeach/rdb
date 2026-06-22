@@ -81,7 +81,14 @@
 				"title": "관리자 - 예약 관리"
 			}
 		},
-
+		{
+			"path": "*/admin/reservations/treatments",
+			"layout": "admin_treatment_list",
+			"auth_required": true,
+			"meta": {
+				"title": "관리자 - 시술 관리"
+			}
+		},
 		{
 			"path": "*/admin/modules",
 			"layout": "admin_module_list",

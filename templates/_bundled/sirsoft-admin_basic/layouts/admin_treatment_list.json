@@ -1,0 +1,336 @@
+{
+  "version": "1.0.0",
+  "layout_name": "admin_treatment_list",
+  "permissions": [],
+  "extends": "_admin_base",
+  "meta": {
+    "title": "Treatment Management",
+    "description": "Manage treatments"
+  },
+  "data_sources": [
+    {
+      "id": "treatments",
+      "type": "api",
+      "endpoint": "/api/admin/reservations/treatments",
+      "method": "GET",
+      "auto_fetch": true,
+      "auth_required": true,
+      "fallback": { "data": [] }
+    }
+  ],
+  "slots": {
+    "content": [
+      {
+        "id": "treatment_list_content",
+        "type": "basic",
+        "name": "Div",
+        "props": { "className": "p-6 bg-gray-50 dark:bg-gray-900" },
+        "children": [
+          {
+            "id": "page_header",
+            "type": "composite",
+            "name": "PageHeader",
+            "props": {
+              "title": "Treatment Management",
+              "description": "Manage available treatments"
+            },
+            "children": [
+              {
+                "id": "add_treatment_button",
+                "type": "basic",
+                "name": "Button",
+                "props": { "className": "flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors" },
+                "actions": [
+                  {
+                    "type": "click",
+                    "handler": "sequence",
+                    "actions": [
+                      {
+                        "handler": "setState",
+                        "params": {
+                          "target": "global",
+                          "tx_editingId": null,
+                          "tx_formName": "",
+                          "tx_formDescription": "",
+                          "tx_formDuration": 60,
+                          "tx_formPrice": 0
+                        }
+                      },
+                      { "handler": "openModal", "target": "modal_alpha" }
+                    ]
+                  }
+                ],
+                "children": [
+                  { "type": "basic", "name": "Icon", "props": { "name": "plus", "className": "w-5 h-5" } },
+                  { "type": "basic", "name": "Span", "text": "Add Treatment" }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "treatments_data_grid",
+            "type": "composite",
+            "name": "DataGrid",
+            "blur_until_loaded": true,
+            "props": {
+              "columns": [
+                { "field": "name", "header": "Name", "required": true },
+                { "field": "description", "header": "Description" },
+                {
+                  "field": "duration",
+                  "header": "Duration",
+                  "cellChildren": [
+                    { "type": "basic", "name": "Span", "text": "{{row.duration}} min" }
+                  ]
+                },
+                {
+                  "field": "price",
+                  "header": "Price",
+                  "cellChildren": [
+                    { "type": "basic", "name": "Span", "text": "{{row.price}}" }
+                  ]
+                }
+              ],
+              "data": "{{treatments?.data}}",
+              "idField": "id",
+              "rowActions": [
+                { "id": "alpha_action", "label": "Modify", "iconName": "pencil" },
+                { "id": "beta_action", "label": "Remove", "iconName": "trash", "variant": "danger" }
+              ],
+              "actionsColumnHeader": "Manage"
+            },
+            "actions": [
+              {
+                "event": "onRowAction",
+                "type": "action",
+                "handler": "switch",
+                "cases": {
+                  "alpha_action": {
+                    "handler": "setState",
+                    "params": {
+                      "target": "global",
+                      "tx_editingId": "{{$args[1].id}}",
+                      "tx_formName": "{{$args[1].name}}",
+                      "tx_formDescription": "{{$args[1].description}}",
+                      "tx_formDuration": "{{$args[1].duration}}",
+                      "tx_formPrice": "{{$args[1].price}}"
+                    },
+                    "onSuccess": [
+                      { "handler": "openModal", "target": "modal_alpha" }
+                    ]
+                  },
+                  "beta_action": {
+                    "handler": "setState",
+                    "params": { "target": "global", "modal_data": "{{$args[1]}}" },
+                    "onSuccess": [
+                      { "handler": "openModal", "target": "modal_beta" }
+                    ]
+                  },
+                  "default": {
+                    "handler": "toast",
+                    "params": { "type": "warning", "message": "Unmatched key received" }
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "modals": [
+    {
+      "id": "modal_beta",
+      "type": "composite",
+      "name": "Modal",
+      "props": { "title": "Delete Treatment", "size": "small" },
+      "children": [
+        {
+          "type": "basic",
+          "name": "Div",
+          "props": { "className": "py-2" },
+          "children": [
+            { "type": "basic", "name": "P", "props": { "className": "text-gray-700 dark:text-gray-300" }, "text": "Delete this treatment?" }
+          ]
+        },
+        {
+          "type": "basic",
+          "name": "Div",
+          "props": { "className": "flex justify-end gap-3 mt-6" },
+          "children": [
+            {
+              "type": "basic",
+              "name": "Button",
+              "props": { "className": "px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700" },
+              "actions": [{ "type": "click", "handler": "closeModal" }],
+              "children": [{ "type": "basic", "name": "Span", "text": "Cancel" }]
+            },
+            {
+              "type": "basic",
+              "name": "Button",
+              "props": { "className": "px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700" },
+              "actions": [
+                {
+                  "type": "click",
+                  "handler": "apiCall",
+                  "auth_required": true,
+                  "target": "/api/admin/reservations/treatments/{{_global.modal_data.id}}",
+                  "params": { "method": "DELETE" },
+                  "onSuccess": [
+                    { "handler": "refetchDataSource", "params": { "dataSourceId": "treatments" } },
+                    { "handler": "toast", "params": { "type": "success", "message": "Deleted" } },
+                    { "handler": "closeModal" }
+                  ]
+                }
+              ],
+              "children": [{ "type": "basic", "name": "Span", "text": "Delete" }]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "modal_alpha",
+      "type": "composite",
+      "name": "Modal",
+      "props": { "title": "{{_global.tx_editingId ? 'Edit Treatment' : 'Add Treatment'}}", "size": "medium" },
+      "children": [
+        {
+          "type": "basic",
+          "name": "Div",
+          "props": { "className": "flex flex-col gap-4 py-2" },
+          "children": [
+            {
+              "type": "basic",
+              "name": "Div",
+              "children": [
+                { "type": "basic", "name": "Label", "props": { "className": "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" }, "text": "Name" },
+                {
+                  "type": "basic",
+                  "name": "Input",
+                  "props": {
+                    "type": "text",
+                    "value": "{{_global.tx_formName}}",
+                    "className": "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  },
+                  "actions": [
+                    { "type": "change", "handler": "setState", "params": { "target": "global", "tx_formName": "{{$event.target.value}}" } }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "basic",
+              "name": "Div",
+              "children": [
+                { "type": "basic", "name": "Label", "props": { "className": "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" }, "text": "Description" },
+                {
+                  "type": "basic",
+                  "name": "Textarea",
+                  "props": {
+                    "value": "{{_global.tx_formDescription}}",
+                    "rows": 3,
+                    "className": "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none"
+                  },
+                  "actions": [
+                    { "type": "change", "handler": "setState", "params": { "target": "global", "tx_formDescription": "{{$event.target.value}}" } }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "basic",
+              "name": "Div",
+              "props": { "className": "grid grid-cols-2 gap-4" },
+              "children": [
+                {
+                  "type": "basic",
+                  "name": "Div",
+                  "children": [
+                    { "type": "basic", "name": "Label", "props": { "className": "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" }, "text": "Duration (min)" },
+                    {
+                      "type": "basic",
+                      "name": "Input",
+                      "props": {
+                        "type": "number",
+                        "value": "{{_global.tx_formDuration}}",
+                        "className": "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      },
+                      "actions": [
+                        { "type": "change", "handler": "setState", "params": { "target": "global", "tx_formDuration": "{{$event.target.value}}" } }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "basic",
+                  "name": "Div",
+                  "children": [
+                    { "type": "basic", "name": "Label", "props": { "className": "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" }, "text": "Price" },
+                    {
+                      "type": "basic",
+                      "name": "Input",
+                      "props": {
+                        "type": "number",
+                        "value": "{{_global.tx_formPrice}}",
+                        "className": "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      },
+                      "actions": [
+                        { "type": "change", "handler": "setState", "params": { "target": "global", "tx_formPrice": "{{$event.target.value}}" } }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "basic",
+          "name": "Div",
+          "props": { "className": "flex justify-end gap-3 mt-6" },
+          "children": [
+            {
+              "type": "basic",
+              "name": "Button",
+              "props": { "className": "px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700" },
+              "actions": [{ "type": "click", "handler": "closeModal" }],
+              "children": [{ "type": "basic", "name": "Span", "text": "Cancel" }]
+            },
+            {
+              "type": "basic",
+              "name": "Button",
+              "props": { "className": "px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" },
+              "actions": [
+                {
+                  "type": "click",
+                  "handler": "apiCall",
+                  "auth_required": true,
+                  "target": "{{_global.tx_editingId ? '/api/admin/reservations/treatments/' + _global.tx_editingId : '/api/admin/reservations/treatments'}}",
+                  "params": {
+                    "method": "{{_global.tx_editingId ? 'PUT' : 'POST'}}",
+                    "body": {
+                      "name": "{{_global.tx_formName}}",
+                      "description": "{{_global.tx_formDescription}}",
+                      "duration": "{{_global.tx_formDuration}}",
+                      "price": "{{_global.tx_formPrice}}"
+                    }
+                  },
+                  "onSuccess": [
+                    { "handler": "refetchDataSource", "params": { "dataSourceId": "treatments" } },
+                    { "handler": "toast", "params": { "type": "success", "message": "Saved" } },
+                    { "handler": "closeModal" }
+                  ],
+                  "onError": [
+                    { "handler": "toast", "params": { "type": "error", "message": "{{error.message}}" } }
+                  ]
+                }
+              ],
+              "children": [{ "type": "basic", "name": "Span", "text": "Save" }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
